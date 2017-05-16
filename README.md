@@ -3,6 +3,7 @@
 [![Tests](https://github.com/philiprehberger/rb-semaphore/actions/workflows/ci.yml/badge.svg)](https://github.com/philiprehberger/rb-semaphore/actions/workflows/ci.yml)
 [![Gem Version](https://badge.fury.io/rb/philiprehberger-semaphore.svg)](https://rubygems.org/gems/philiprehberger-semaphore)
 [![License](https://img.shields.io/github/license/philiprehberger/rb-semaphore)](LICENSE)
+[![Sponsor](https://img.shields.io/badge/sponsor-GitHub%20Sponsors-ec6cb9)](https://github.com/sponsors/philiprehberger)
 
 Counting semaphore for concurrent access control with timeouts
 
