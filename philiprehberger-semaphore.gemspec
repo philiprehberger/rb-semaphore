@@ -10,8 +10,8 @@ Gem::Specification.new do |spec|
 
   spec.summary = 'Counting semaphore for concurrent access control with timeouts'
   spec.description = 'Counting semaphore built on Mutex and ConditionVariable for concurrent access control ' \
-                       'with configurable permits, weighted acquisition, FIFO fairness, dynamic resizing, ' \
-                       'blocking acquire, and timeout-based try_acquire.'
+                     'with configurable permits, weighted acquisition, FIFO fairness, dynamic resizing, ' \
+                     'blocking acquire, and timeout-based try_acquire.'
   spec.homepage = 'https://philiprehberger.com/open-source-packages/ruby/philiprehberger-semaphore'
   spec.license = 'MIT'
 
