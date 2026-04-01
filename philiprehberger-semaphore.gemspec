@@ -3,24 +3,24 @@
 require_relative 'lib/philiprehberger/semaphore/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = 'philiprehberger-semaphore'
-  spec.version       = Philiprehberger::Semaphore::VERSION
-  spec.authors       = ['Philip Rehberger']
-  spec.email         = ['me@philiprehberger.com']
+  spec.name = 'philiprehberger-semaphore'
+  spec.version = Philiprehberger::Semaphore::VERSION
+  spec.authors = ['Philip Rehberger']
+  spec.email = ['me@philiprehberger.com']
 
-  spec.summary       = 'Counting semaphore for concurrent access control with timeouts'
-  spec.description   = 'Counting semaphore built on Mutex and ConditionVariable for concurrent access control ' \
+  spec.summary = 'Counting semaphore for concurrent access control with timeouts'
+  spec.description = 'Counting semaphore built on Mutex and ConditionVariable for concurrent access control ' \
                        'with configurable permits, weighted acquisition, FIFO fairness, dynamic resizing, ' \
                        'blocking acquire, and timeout-based try_acquire.'
-  spec.homepage      = 'https://philiprehberger.com/open-source-packages/ruby/philiprehberger-semaphore'
-  spec.license       = 'MIT'
+  spec.homepage = 'https://philiprehberger.com/open-source-packages/ruby/philiprehberger-semaphore'
+  spec.license = 'MIT'
 
   spec.required_ruby_version = '>= 3.1.0'
 
-  spec.metadata['homepage_uri']          = spec.homepage
-  spec.metadata['source_code_uri']       = 'https://github.com/philiprehberger/rb-semaphore'
-  spec.metadata['changelog_uri']         = 'https://github.com/philiprehberger/rb-semaphore/blob/main/CHANGELOG.md'
-  spec.metadata['bug_tracker_uri']       = 'https://github.com/philiprehberger/rb-semaphore/issues'
+  spec.metadata['homepage_uri'] = spec.homepage
+  spec.metadata['source_code_uri'] = 'https://github.com/philiprehberger/rb-semaphore'
+  spec.metadata['changelog_uri'] = 'https://github.com/philiprehberger/rb-semaphore/blob/main/CHANGELOG.md'
+  spec.metadata['bug_tracker_uri'] = 'https://github.com/philiprehberger/rb-semaphore/issues'
   spec.metadata['rubygems_mfa_required'] = 'true'
 
   spec.files = Dir['lib/**/*.rb', 'LICENSE', 'README.md', 'CHANGELOG.md']
