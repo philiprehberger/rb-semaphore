@@ -73,6 +73,22 @@ sem.permits   # => 5
 sem.available # => 5
 ```
 
+### Graceful Drain
+
+```ruby
+require "philiprehberger/semaphore"
+
+sem = Philiprehberger::Semaphore::Counter.new(permits: 3)
+
+# Workers acquire permits in other threads...
+# When shutting down, drain blocks until all permits are returned:
+sem.drain
+
+# After drain, new acquisitions are rejected:
+sem.acquire  # => raises Philiprehberger::Semaphore::Error
+sem.try_acquire(timeout: 1)  # => false
+```
+
 ## API
 
 | Method | Description |
@@ -82,8 +98,11 @@ sem.available # => 5
 | `#try_acquire(timeout:, weight: 1) { block }` | Try to acquire within timeout, returns false on expiry |
 | `#release(weight: 1)` | Release one or more permits back to the semaphore |
 | `#resize(new_permits)` | Change total permit count at runtime |
+| `#drain` | Block until all permits are returned; reject new acquisitions |
 | `#available` | Return the number of currently available permits |
 | `#permits` | Return the total number of permits |
+| `#fair?` | Return whether the semaphore uses FIFO fairness |
+| `#draining?` | Return whether the semaphore is currently draining |
 
 ## Development
 

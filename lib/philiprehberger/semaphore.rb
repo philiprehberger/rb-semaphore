@@ -24,6 +24,8 @@ module Philiprehberger
         @available = permits
         @mutex = Mutex.new
         @fair = fair
+        @draining = false
+        @drain_condition = ConditionVariable.new
 
         if @fair
           @queue = []
@@ -46,6 +48,42 @@ module Philiprehberger
         @mutex.synchronize { @available }
       end
 
+      # Return whether this semaphore uses FIFO fairness
+      #
+      # @return [Boolean]
+      def fair?
+        @fair
+      end
+
+      # Return whether this semaphore is currently draining
+      #
+      # @return [Boolean]
+      def draining?
+        @mutex.synchronize { @draining }
+      end
+
+      # Drain the semaphore: reject new acquisitions and block until all permits are returned
+      #
+      # Once draining begins, {#acquire} raises {Error} and {#try_acquire} returns false.
+      # This method blocks the calling thread until every outstanding permit has been released.
+      # After drain completes the semaphore remains in the draining state.
+      #
+      # @return [void]
+      def drain
+        @mutex.synchronize do
+          @draining = true
+
+          # Wake all waiting acquirers so they can observe the draining state and exit
+          if @fair
+            @queue.each(&:signal)
+          else
+            @condition.broadcast
+          end
+
+          @drain_condition.wait(@mutex) while @available < @permits
+        end
+      end
+
       # Acquire one or more permits, blocking until available
       #
       # @param weight [Integer] number of permits to acquire (default: 1)
@@ -55,13 +93,25 @@ module Philiprehberger
         validate_weight!(weight)
 
         @mutex.synchronize do
+          raise Error, 'semaphore is draining' if @draining
+
           if @fair
             cv = ConditionVariable.new
             @queue.push(cv)
-            cv.wait(@mutex) while @queue.first != cv || @available < weight
+            loop do
+              raise_if_draining_fair!(cv)
+              break if @queue.first == cv && @available >= weight
+
+              cv.wait(@mutex)
+            end
             @queue.shift
           else
-            @condition.wait(@mutex) while @available < weight
+            loop do
+              raise Error, 'semaphore is draining' if @draining
+              break if @available >= weight
+
+              @condition.wait(@mutex)
+            end
           end
           @available -= weight
         end
@@ -89,11 +139,18 @@ module Philiprehberger
         acquired = false
 
         @mutex.synchronize do
+          return false if @draining
+
           if @fair
             cv = ConditionVariable.new
             @queue.push(cv)
 
             loop do
+              if @draining
+                @queue.delete(cv)
+                break
+              end
+
               if @queue.first == cv && @available >= weight
                 @queue.shift
                 acquired = true
@@ -110,6 +167,8 @@ module Philiprehberger
             end
           else
             loop do
+              break if @draining
+
               if @available >= weight
                 acquired = true
                 break
@@ -151,7 +210,9 @@ module Philiprehberger
 
           @available += weight
 
-          if @fair
+          if @draining
+            @drain_condition.signal if @available >= @permits
+          elsif @fair
             @queue.each(&:signal)
           else
             weight.times { @condition.signal }
@@ -188,6 +249,13 @@ module Philiprehberger
       def validate_weight!(weight)
         raise ArgumentError, 'weight must be a positive integer' unless weight.is_a?(Integer) && weight >= 1
         raise ArgumentError, 'weight cannot exceed total permits' if weight > @mutex.synchronize { @permits }
+      end
+
+      def raise_if_draining_fair!(cv)
+        return unless @draining
+
+        @queue.delete(cv)
+        raise Error, 'semaphore is draining'
       end
     end
   end
