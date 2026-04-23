@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-04-10
+
+### Added
+
+- Graceful drain/shutdown: `drain` blocks until all permits are returned, rejects new acquisitions
+- `draining?` predicate to check whether the semaphore is currently draining
+- `fair?` predicate to query whether the semaphore uses FIFO fairness
+
 ## [0.2.1] - 2026-03-31
 
 ### Changed

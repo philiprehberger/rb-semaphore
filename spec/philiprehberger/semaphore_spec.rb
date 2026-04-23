@@ -523,6 +523,170 @@ RSpec.describe Philiprehberger::Semaphore::Counter do
     end
   end
 
+  describe '#fair?' do
+    it 'returns false by default' do
+      sem = described_class.new(permits: 3)
+      expect(sem.fair?).to be false
+    end
+
+    it 'returns true when created with fair: true' do
+      sem = described_class.new(permits: 3, fair: true)
+      expect(sem.fair?).to be true
+    end
+  end
+
+  describe '#draining?' do
+    it 'returns false initially' do
+      sem = described_class.new(permits: 3)
+      expect(sem.draining?).to be false
+    end
+
+    it 'returns true after drain is called' do
+      sem = described_class.new(permits: 3)
+      sem.drain
+      expect(sem.draining?).to be true
+    end
+  end
+
+  describe '#drain' do
+    it 'completes immediately when no permits are held' do
+      sem = described_class.new(permits: 3)
+      sem.drain
+      expect(sem.draining?).to be true
+      expect(sem.available).to eq(3)
+    end
+
+    it 'blocks until all permits are returned' do
+      sem = described_class.new(permits: 2)
+      sem.acquire
+      drained = false
+
+      drain_thread = Thread.new do
+        sem.drain
+        drained = true
+      end
+
+      sleep(0.02)
+      expect(drained).to be false
+      sem.release
+      drain_thread.join(1)
+      expect(drained).to be true
+    end
+
+    it 'blocks until weighted permits are returned' do
+      sem = described_class.new(permits: 5)
+      sem.acquire(weight: 3)
+      drained = false
+
+      drain_thread = Thread.new do
+        sem.drain
+        drained = true
+      end
+
+      sleep(0.02)
+      expect(drained).to be false
+      sem.release(weight: 3)
+      drain_thread.join(1)
+      expect(drained).to be true
+    end
+
+    it 'is idempotent' do
+      sem = described_class.new(permits: 1)
+      sem.drain
+      sem.drain
+      expect(sem.draining?).to be true
+    end
+
+    it 'wakes blocked acquirers who then raise' do
+      sem = described_class.new(permits: 1)
+      sem.acquire
+      error_raised = false
+
+      waiter = Thread.new do
+        sem.acquire { 'should not run' }
+      rescue Philiprehberger::Semaphore::Error
+        error_raised = true
+      end
+
+      sleep(0.02)
+      Thread.new { sem.drain }
+      sleep(0.02)
+      sem.release
+      waiter.join(1)
+      expect(error_raised).to be true
+    end
+
+    it 'works with fair mode' do
+      sem = described_class.new(permits: 2, fair: true)
+      sem.acquire
+      drained = false
+
+      drain_thread = Thread.new do
+        sem.drain
+        drained = true
+      end
+
+      sleep(0.02)
+      expect(drained).to be false
+      sem.release
+      drain_thread.join(1)
+      expect(drained).to be true
+    end
+
+    it 'wakes fair-mode blocked acquirers who then raise' do
+      sem = described_class.new(permits: 1, fair: true)
+      sem.acquire
+      error_raised = false
+
+      waiter = Thread.new do
+        sem.acquire { 'should not run' }
+      rescue Philiprehberger::Semaphore::Error
+        error_raised = true
+      end
+
+      sleep(0.02)
+      Thread.new { sem.drain }
+      sleep(0.02)
+      sem.release
+      waiter.join(1)
+      expect(error_raised).to be true
+    end
+  end
+
+  describe 'acquire during drain' do
+    it 'raises on acquire when draining' do
+      sem = described_class.new(permits: 3)
+      sem.drain
+      expect { sem.acquire }.to raise_error(Philiprehberger::Semaphore::Error, /draining/)
+    end
+
+    it 'raises on acquire with block when draining' do
+      sem = described_class.new(permits: 3)
+      sem.drain
+      expect { sem.acquire { 'nope' } }.to raise_error(Philiprehberger::Semaphore::Error, /draining/)
+    end
+
+    it 'returns false on try_acquire when draining' do
+      sem = described_class.new(permits: 3)
+      sem.drain
+      result = sem.try_acquire(timeout: 1) { 'nope' }
+      expect(result).to be false
+    end
+
+    it 'raises on acquire in fair mode when draining' do
+      sem = described_class.new(permits: 3, fair: true)
+      sem.drain
+      expect { sem.acquire }.to raise_error(Philiprehberger::Semaphore::Error, /draining/)
+    end
+
+    it 'returns false on try_acquire in fair mode when draining' do
+      sem = described_class.new(permits: 3, fair: true)
+      sem.drain
+      result = sem.try_acquire(timeout: 1) { 'nope' }
+      expect(result).to be false
+    end
+  end
+
   describe 'concurrent access' do
     it 'limits concurrent access to the number of permits' do
       sem = described_class.new(permits: 2)
