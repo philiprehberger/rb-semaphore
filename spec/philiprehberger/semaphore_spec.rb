@@ -359,6 +359,49 @@ RSpec.describe Philiprehberger::Semaphore::Counter do
     end
   end
 
+  describe '#acquired_count' do
+    it 'returns zero when no permits are held' do
+      sem = described_class.new(permits: 3)
+      expect(sem.acquired_count).to eq(0)
+    end
+
+    it 'increments when permits are acquired' do
+      sem = described_class.new(permits: 3)
+      sem.acquire
+      expect(sem.acquired_count).to eq(1)
+      sem.acquire
+      expect(sem.acquired_count).to eq(2)
+      sem.release
+      sem.release
+    end
+
+    it 'decrements when permits are released' do
+      sem = described_class.new(permits: 3)
+      sem.acquire
+      sem.acquire
+      sem.release
+      expect(sem.acquired_count).to eq(1)
+      sem.release
+      expect(sem.acquired_count).to eq(0)
+    end
+
+    it 'accounts for weighted acquires' do
+      sem = described_class.new(permits: 10)
+      sem.acquire(weight: 3)
+      sem.acquire(weight: 2)
+      expect(sem.acquired_count).to eq(5)
+      sem.release(weight: 3)
+      sem.release(weight: 2)
+    end
+
+    it 'satisfies acquired_count + available == permits' do
+      sem = described_class.new(permits: 5)
+      sem.acquire(weight: 2)
+      expect(sem.acquired_count + sem.available).to eq(sem.permits)
+      sem.release(weight: 2)
+    end
+  end
+
   describe '#resize' do
     it 'increases total permits' do
       sem = described_class.new(permits: 3)

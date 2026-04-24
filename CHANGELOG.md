@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-04-23
+
+### Added
+
+- `Counter#acquired_count` — returns the number of permits currently held by acquirers, equivalent to `permits - available` but taken atomically under the internal lock
+
 ## [0.3.0] - 2026-04-10
 
 ### Added

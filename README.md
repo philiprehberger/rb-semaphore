@@ -89,6 +89,19 @@ sem.acquire  # => raises Philiprehberger::Semaphore::Error
 sem.try_acquire(timeout: 1)  # => false
 ```
 
+### Observability
+
+```ruby
+require "philiprehberger/semaphore"
+
+sem = Philiprehberger::Semaphore::Counter.new(permits: 5)
+sem.acquire
+sem.acquire(weight: 2)
+
+sem.acquired_count # => 3
+sem.available      # => 2
+```
+
 ## API
 
 | Method | Description |
@@ -100,6 +113,7 @@ sem.try_acquire(timeout: 1)  # => false
 | `#resize(new_permits)` | Change total permit count at runtime |
 | `#drain` | Block until all permits are returned; reject new acquisitions |
 | `#available` | Return the number of currently available permits |
+| `#acquired_count` | Return the number of permits currently held (permits - available) |
 | `#permits` | Return the total number of permits |
 | `#fair?` | Return whether the semaphore uses FIFO fairness |
 | `#draining?` | Return whether the semaphore is currently draining |

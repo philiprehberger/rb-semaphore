@@ -48,6 +48,16 @@ module Philiprehberger
         @mutex.synchronize { @available }
       end
 
+      # Return the number of permits currently held by acquirers
+      #
+      # Equivalent to `permits - available` but computed under the internal lock
+      # for a consistent snapshot. Useful for observability and metrics.
+      #
+      # @return [Integer]
+      def acquired_count
+        @mutex.synchronize { @permits - @available }
+      end
+
       # Return whether this semaphore uses FIFO fairness
       #
       # @return [Boolean]
