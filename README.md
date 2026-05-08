@@ -87,6 +87,9 @@ sem.drain
 # After drain, new acquisitions are rejected:
 sem.acquire  # => raises Philiprehberger::Semaphore::Error
 sem.try_acquire(timeout: 1)  # => false
+
+# Or poll non-blockingly: drained? is true once draining AND all permits returned
+sem.drained?  # => true
 ```
 
 ### Observability
@@ -117,6 +120,7 @@ sem.available      # => 2
 | `#permits` | Return the total number of permits |
 | `#fair?` | Return whether the semaphore uses FIFO fairness |
 | `#draining?` | Return whether the semaphore is currently draining |
+| `#drained?` | Return whether the semaphore is draining AND all outstanding permits have been released |
 
 ## Development
 

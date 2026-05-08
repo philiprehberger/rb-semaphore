@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-05-08
+
+### Added
+- `Counter#drained?` — returns true once the semaphore is in the draining state and every outstanding permit has been released. Pairs with `#drain` for non-blocking polling and clean shutdown checks without inspecting both `#draining?` and `#acquired_count`.
+
 ## [0.4.0] - 2026-04-23
 
 ### Added

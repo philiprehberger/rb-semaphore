@@ -72,6 +72,18 @@ module Philiprehberger
         @mutex.synchronize { @draining }
       end
 
+      # Return whether the semaphore has finished draining: it is in the
+      # draining state AND every outstanding permit has been released.
+      #
+      # Useful for non-blocking polling alongside {#drain}, or as a clean
+      # one-shot condition check in shutdown sequences without inspecting
+      # both {#draining?} and {#acquired_count}.
+      #
+      # @return [Boolean]
+      def drained?
+        @mutex.synchronize { @draining && @available == @permits }
+      end
+
       # Drain the semaphore: reject new acquisitions and block until all permits are returned
       #
       # Once draining begins, {#acquire} raises {Error} and {#try_acquire} returns false.

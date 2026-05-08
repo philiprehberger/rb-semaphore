@@ -591,6 +591,34 @@ RSpec.describe Philiprehberger::Semaphore::Counter do
     end
   end
 
+  describe '#drained?' do
+    it 'returns false before drain' do
+      sem = described_class.new(permits: 3)
+      expect(sem.drained?).to be false
+    end
+
+    it 'returns true after drain when no permits are held' do
+      sem = described_class.new(permits: 3)
+      sem.drain
+      expect(sem.drained?).to be true
+    end
+
+    it 'returns false during drain when permits are still outstanding' do
+      sem = described_class.new(permits: 2)
+      sem.acquire
+
+      drain_thread = Thread.new { sem.drain }
+      Thread.pass
+      sleep(0.01)
+
+      expect(sem.drained?).to be false
+      expect(sem.draining?).to be true
+      sem.release
+      drain_thread.join(1)
+      expect(sem.drained?).to be true
+    end
+  end
+
   describe '#drain' do
     it 'completes immediately when no permits are held' do
       sem = described_class.new(permits: 3)
